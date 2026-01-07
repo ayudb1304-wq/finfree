@@ -1,0 +1,29 @@
+---
+description: FinFree coding standards and interaction patterns
+alwaysApply: true
+---
+
+## General Principles
+
+- **Mobile-first**: Every component must be responsive by default. Prefer `flex-col`, fluid layouts, and full-width CTAs on mobile. Use Tailwind `sm:`/`md:` sparingly and only when the mobile layout is already correct.
+- **Clean code**: Use **strict TypeScript**. Prefer functional components and **arrow functions**. Keep components small and composable.
+- **Performance**: Prefer **Next.js Server Components**. Only add `"use client"` for truly interactive UI (forms, charts, gestures) and keep client components minimal.
+
+## Tech Stack Specifics
+
+- **Next.js 15**: Use **App Router** conventions (`app/` directory). Use route segments/layouts properly; avoid Pages Router patterns.
+- **shadcn/ui**: Before creating a new UI component, check whether a **shadcn** component already exists and use/extend it.
+- **PWA**: When editing `app/layout.tsx`, ensure PWA metadata stays correct/complete (e.g. `manifest.json`, icons, theme color, and related metadata).
+- **Icons**: Use **`lucide-react`** for icons (avoid mixing icon packs).
+
+## Logic Rules
+
+- **Financial math**: Put all finance calculations in `lib/finances.ts` (no finance math inside UI components). Examples include compound interest, safe withdrawal math, and FIRE date calculations.
+- **Formatting**: Use **`Intl.NumberFormat`** for all currency displays, defaulting to the user’s locale (no manual string concatenation for currency).
+
+## Interaction Patterns
+
+- **Touch targets**: Buttons must have a minimum height of **44px** (e.g. Tailwind `min-h-11`).
+- **Dashboard widgets**: Use **shadcn/ui `Card`** components for all dashboard widgets.
+- **Pull-to-refresh**: When applicable, implement a **pull-to-refresh** interaction for data fetching on mobile (avoid blocking UI; keep it resilient to retries and network failures).
+
