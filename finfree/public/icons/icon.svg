@@ -1,0 +1,20 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#0f0f1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="92.16" fill="url(#bg)"/>
+  <circle cx="256" cy="204.8" r="92.16" fill="url(#accent)" opacity="0.25"/>
+  <g transform="translate(256, 204.8)">
+    <line x1="0" y1="-71.68" x2="0" y2="71.68" stroke="#8b5cf6" stroke-width="20.48" stroke-linecap="round"/>
+    <line x1="-51.2" y1="0" x2="51.2" y2="0" stroke="#8b5cf6" stroke-width="20.48" stroke-linecap="round"/>
+  </g>
+  <text x="256" y="384" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" font-size="71.68" font-weight="700" fill="#8b5cf6">FF</text>
+</svg>
