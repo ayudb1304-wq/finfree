@@ -2,7 +2,7 @@
 
 import { Wallet, UtensilsCrossed, Home, Car, Zap, Smartphone, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useFinFreeStore } from '@/lib/store';
+import { useFinFreeStore, useHydration } from '@/lib/store';
 import { formatCurrency, LIFESTYLE_BUDGET } from '@/lib/constants';
 import { getCurrentMonth, getDaysRemaining, calculateDailyLimit } from '@/lib/finances';
 
@@ -25,6 +25,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export const MonthlyBudgetCard = () => {
+  const hydrated = useHydration();
   const { transactions, lifestyleCap } = useFinFreeStore();
   const currentMonth = getCurrentMonth();
   const daysRemaining = getDaysRemaining();
@@ -42,6 +43,32 @@ export const MonthlyBudgetCard = () => {
   const remaining = lifestyleCap - totalSpent;
   const dailyLimit = calculateDailyLimit(remaining, daysRemaining);
   const overallProgress = (totalSpent / lifestyleCap) * 100;
+
+  if (!hydrated) {
+    return (
+      <Card className="border-0 bg-card">
+        <CardContent className="p-5">
+          <div className="animate-pulse space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="h-5 w-32 bg-muted rounded" />
+              <div className="h-4 w-20 bg-muted rounded" />
+            </div>
+            <div className="h-8 w-28 bg-muted rounded" />
+            <div className="h-2 bg-muted rounded-full" />
+            <div className="h-16 bg-muted rounded" />
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="h-8 w-8 bg-muted rounded-lg" />
+                  <div className="flex-1 h-4 bg-muted rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-0 bg-card">

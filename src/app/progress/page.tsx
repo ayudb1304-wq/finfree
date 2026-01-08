@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { format, subMonths, startOfMonth } from 'date-fns';
+import { toast } from 'sonner';
 import {
   TrendingUp,
   TrendingDown,
@@ -12,6 +13,7 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from 'lucide-react';
 import {
   LineChart,
@@ -30,7 +32,15 @@ import { Header } from '@/components/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFinFreeStore } from '@/lib/store';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useFinFreeStore, useHydration } from '@/lib/store';
 import { formatCurrency, formatCompactCurrency, INITIAL_OD_BALANCE, OD_PAYOFF_SCHEDULE } from '@/lib/constants';
 import type { Transaction } from '@/lib/types';
 
@@ -88,8 +98,10 @@ const transactionColors: Record<Transaction['type'], string> = {
 };
 
 export default function ProgressPage() {
-  const { transactions, currentODBalance } = useFinFreeStore();
+  const hydrated = useHydration();
+  const { transactions, currentODBalance, deleteTransaction } = useFinFreeStore();
   const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
 
   const odProgressData = generateODProgressData(currentODBalance);
   const netWorthData = generateNetWorthData();
@@ -124,6 +136,32 @@ export default function ProgressPage() {
       setSelectedMonth(nextMonth);
     }
   };
+
+  const handleDeleteTransaction = () => {
+    if (!transactionToDelete) return;
+    
+    deleteTransaction(transactionToDelete.id);
+    toast.success('Transaction deleted', {
+      description: `${transactionToDelete.description} - ${formatCurrency(transactionToDelete.amount)}`,
+    });
+    setTransactionToDelete(null);
+  };
+
+  // Show loading while hydrating
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header title="Progress" />
+        <div className="px-4 py-4 max-w-md mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-12 bg-muted rounded" />
+            <div className="h-48 bg-muted rounded" />
+            <div className="h-48 bg-muted rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -401,7 +439,7 @@ export default function ProgressPage() {
                       return (
                         <div
                           key={transaction.id}
-                          className="flex items-center gap-3 p-3"
+                          className="flex items-center gap-3 p-3 group"
                         >
                           <div
                             className={`w-9 h-9 rounded-full flex items-center justify-center ${colorClass}`}
@@ -424,6 +462,13 @@ export default function ProgressPage() {
                             {isIncome ? '+' : '-'}
                             {formatCurrency(transaction.amount)}
                           </span>
+                          <button
+                            onClick={() => setTransactionToDelete(transaction)}
+                            className="p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all"
+                            aria-label="Delete transaction"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-400" />
+                          </button>
                         </div>
                       );
                     })}
@@ -434,6 +479,42 @@ export default function ProgressPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!transactionToDelete} onOpenChange={() => setTransactionToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Transaction?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this transaction? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {transactionToDelete && (
+            <div className="py-4 space-y-2">
+              <p className="font-medium">{transactionToDelete.description}</p>
+              <p className="text-sm text-muted-foreground">
+                Amount: {formatCurrency(transactionToDelete.amount)}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Date: {format(new Date(transactionToDelete.date), 'PPP')}
+              </p>
+              {(transactionToDelete.type === 'od_payment' || transactionToDelete.type === 'savings') && (
+                <p className="text-xs text-orange-400 mt-2">
+                  ⚠️ Deleting this will reverse the effect on your balances.
+                </p>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransactionToDelete(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteTransaction}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

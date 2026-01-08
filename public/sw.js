@@ -1,11 +1,12 @@
 // FinFree Service Worker
-const CACHE_NAME = 'finfree-v1';
+const CACHE_NAME = 'finfree-v2';
 const urlsToCache = [
   '/',
   '/goals',
   '/progress',
   '/add',
   '/settings',
+  '/emis',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

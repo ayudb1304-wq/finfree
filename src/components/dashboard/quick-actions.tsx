@@ -5,7 +5,7 @@ import {
   TrendingDown, 
   PiggyBank, 
   Receipt, 
-  Wallet,
+  CreditCard,
   ArrowRight
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,10 +24,10 @@ const quickActions = [
     color: 'bg-red-500/20 text-red-400',
   },
   {
-    href: '/add?type=income',
-    icon: Wallet,
-    label: 'Add Income',
-    color: 'bg-green-500/20 text-green-400',
+    href: '/emis',
+    icon: CreditCard,
+    label: 'EMI',
+    color: 'bg-purple-500/20 text-purple-400',
   },
   {
     href: '/add?type=savings',

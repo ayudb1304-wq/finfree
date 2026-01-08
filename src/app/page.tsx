@@ -4,6 +4,7 @@ import { Header } from '@/components/header';
 import { FreedomScoreCard } from '@/components/dashboard/freedom-score-card';
 import { NetWorthCard } from '@/components/dashboard/net-worth-card';
 import { ODTrackerCard } from '@/components/dashboard/od-tracker-card';
+import { EMITrackerCard } from '@/components/dashboard/emi-tracker-card';
 import { MonthlyBudgetCard } from '@/components/dashboard/monthly-budget-card';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
@@ -21,6 +22,7 @@ export default function Dashboard() {
         <div className="grid gap-4">
           <NetWorthCard />
           <ODTrackerCard />
+          <EMITrackerCard />
         </div>
 
         {/* Quick Actions */}

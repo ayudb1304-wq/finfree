@@ -2,11 +2,12 @@
 
 import { CreditCard, TrendingDown, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useFinFreeStore } from '@/lib/store';
+import { useFinFreeStore, useHydration } from '@/lib/store';
 import { formatCurrency, INITIAL_OD_BALANCE, OD_PAYOFF_SCHEDULE } from '@/lib/constants';
 import { calculateMonthsToPayoff, getCurrentMonth } from '@/lib/finances';
 
 export const ODTrackerCard = () => {
+  const hydrated = useHydration();
   const { currentODBalance, targetODPayment } = useFinFreeStore();
   
   const paidOff = INITIAL_OD_BALANCE - currentODBalance;
@@ -20,6 +21,27 @@ export const ODTrackerCard = () => {
   
   const isOnTrack = variance <= 5000; // Within 5k is considered on track
   const isCleared = currentODBalance <= 0;
+
+  if (!hydrated) {
+    return (
+      <Card className="border-0 bg-gradient-to-br from-orange-600/20 via-red-600/10 to-pink-600/20">
+        <CardContent className="p-5">
+          <div className="animate-pulse space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="h-5 w-32 bg-muted rounded" />
+              <div className="h-5 w-16 bg-muted rounded-full" />
+            </div>
+            <div className="h-10 w-40 bg-muted rounded" />
+            <div className="h-3 bg-muted rounded-full" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="h-16 bg-muted rounded" />
+              <div className="h-16 bg-muted rounded" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isCleared) {
     return (

@@ -2,7 +2,7 @@
 
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useFreedomScore } from '@/lib/store';
+import { useFreedomScore, useHydration } from '@/lib/store';
 import { formatMonth, getCurrentMonth } from '@/lib/finances';
 
 interface HeaderProps {
@@ -11,6 +11,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ title, showScore = true }: HeaderProps) => {
+  const hydrated = useHydration();
   const freedomScore = useFreedomScore();
   const currentMonth = formatMonth(getCurrentMonth());
 
@@ -29,7 +30,11 @@ export const Header = ({ title, showScore = true }: HeaderProps) => {
           {showScore && (
             <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary">
               <span className="text-xs font-medium">Freedom</span>
-              <span className="text-sm font-bold">{freedomScore}%</span>
+              {hydrated ? (
+                <span className="text-sm font-bold">{freedomScore}%</span>
+              ) : (
+                <span className="text-sm font-bold animate-pulse">--%</span>
+              )}
             </div>
           )}
           <Button variant="ghost" size="icon" className="h-9 w-9">

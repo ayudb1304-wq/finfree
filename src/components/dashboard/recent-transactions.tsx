@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import {
   ArrowRight,
   TrendingDown,
@@ -9,9 +11,19 @@ import {
   Receipt,
   CreditCard,
   PiggyBank,
+  Trash2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useFinFreeStore } from '@/lib/store';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useFinFreeStore, useHydration } from '@/lib/store';
 import { formatCurrency } from '@/lib/constants';
 import type { Transaction } from '@/lib/types';
 
@@ -32,12 +44,44 @@ const transactionColors: Record<Transaction['type'], string> = {
 };
 
 export const RecentTransactions = () => {
-  const { transactions } = useFinFreeStore();
+  const hydrated = useHydration();
+  const { transactions, deleteTransaction } = useFinFreeStore();
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
 
   // Get last 5 transactions sorted by date
   const recentTransactions = [...transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
+
+  const handleDelete = () => {
+    if (!transactionToDelete) return;
+    
+    deleteTransaction(transactionToDelete.id);
+    toast.success('Transaction deleted', {
+      description: `${transactionToDelete.description} - ${formatCurrency(transactionToDelete.amount)}`,
+    });
+    setTransactionToDelete(null);
+  };
+
+  // Show loading state while hydrating
+  if (!hydrated) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-muted-foreground">Recent Transactions</h2>
+        </div>
+        <Card className="border-0 bg-card">
+          <CardContent className="p-6 text-center">
+            <div className="animate-pulse space-y-3">
+              <div className="h-12 bg-muted rounded" />
+              <div className="h-12 bg-muted rounded" />
+              <div className="h-12 bg-muted rounded" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (recentTransactions.length === 0) {
     return (
@@ -79,7 +123,7 @@ export const RecentTransactions = () => {
             return (
               <div
                 key={transaction.id}
-                className="flex items-center gap-3 p-3 hover:bg-accent/50 transition-colors"
+                className="flex items-center gap-3 p-3 hover:bg-accent/50 transition-colors group"
               >
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center ${colorClass}`}>
                   <Icon className="w-4 h-4" />
@@ -93,11 +137,54 @@ export const RecentTransactions = () => {
                 <span className={`text-sm font-semibold ${isIncome ? 'text-green-400' : 'text-foreground'}`}>
                   {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
                 </span>
+                <button
+                  onClick={() => setTransactionToDelete(transaction)}
+                  className="p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all"
+                  aria-label="Delete transaction"
+                >
+                  <Trash2 className="w-4 h-4 text-red-400" />
+                </button>
               </div>
             );
           })}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!transactionToDelete} onOpenChange={() => setTransactionToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Transaction?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this transaction? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {transactionToDelete && (
+            <div className="py-4 space-y-2">
+              <p className="font-medium">{transactionToDelete.description}</p>
+              <p className="text-sm text-muted-foreground">
+                Amount: {formatCurrency(transactionToDelete.amount)}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Date: {format(new Date(transactionToDelete.date), 'PPP')}
+              </p>
+              {(transactionToDelete.type === 'od_payment' || transactionToDelete.type === 'savings') && (
+                <p className="text-xs text-orange-400 mt-2">
+                  ⚠️ Deleting this will reverse the effect on your balances.
+                </p>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransactionToDelete(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

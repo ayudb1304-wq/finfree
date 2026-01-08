@@ -2,10 +2,11 @@
 
 import { Trophy } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useFreedomScore, useCurrentPhase } from '@/lib/store';
+import { useFreedomScore, useCurrentPhase, useHydration } from '@/lib/store';
 import { FINANCIAL_PHASES } from '@/lib/constants';
 
 export const FreedomScoreCard = () => {
+  const hydrated = useHydration();
   const freedomScore = useFreedomScore();
   const currentPhase = useCurrentPhase();
   const phase = FINANCIAL_PHASES[currentPhase - 1];
@@ -23,6 +24,26 @@ export const FreedomScoreCard = () => {
     if (score >= 25) return 'bg-orange-500';
     return 'bg-red-500';
   };
+
+  if (!hydrated) {
+    return (
+      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-violet-600/20 via-purple-600/10 to-fuchsia-600/20">
+        <CardContent className="p-5">
+          <div className="animate-pulse space-y-4">
+            <div className="flex items-start justify-between">
+              <div className="space-y-2">
+                <div className="h-4 w-24 bg-muted rounded" />
+                <div className="h-10 w-20 bg-muted rounded" />
+              </div>
+              <div className="h-10 w-10 bg-muted rounded-full" />
+            </div>
+            <div className="h-2 bg-muted rounded-full" />
+            <div className="h-4 w-48 bg-muted rounded" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-violet-600/20 via-purple-600/10 to-fuchsia-600/20">

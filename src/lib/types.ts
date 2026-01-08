@@ -62,6 +62,17 @@ export interface LifestyleCategory {
   icon: string;
 }
 
+export interface EMI {
+  id: string;
+  name: string;
+  amount: number;
+  totalInstallments: number;
+  paidInstallments: number;
+  startDate: string;
+  endDate: string;
+  description?: string;
+}
+
 export interface FinancialState {
   // Current snapshot
   monthlyNetIncome: number;
@@ -81,6 +92,9 @@ export interface FinancialState {
   
   // Transactions
   transactions: Transaction[];
+  
+  // EMIs
+  emis: EMI[];
   
   // Settings
   lifestyleCap: number;

@@ -2,16 +2,41 @@
 
 import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useNetWorth, useFinFreeStore } from '@/lib/store';
+import { useNetWorth, useFinFreeStore, useHydration } from '@/lib/store';
 import { formatCurrency } from '@/lib/constants';
 
 export const NetWorthCard = () => {
+  const hydrated = useHydration();
   const netWorth = useNetWorth();
-  const { emergencyFund, landFund, weddingFund, currentODBalance, emiRemaining, emiAmount } = useFinFreeStore();
+  const { emergencyFund, landFund, weddingFund, currentODBalance, emis } = useFinFreeStore();
 
   const totalAssets = emergencyFund + landFund + weddingFund;
-  const totalLiabilities = currentODBalance + (emiRemaining * emiAmount);
+  
+  // Calculate total EMI liability from emis array
+  const totalEMILiability = emis.reduce((sum, emi) => {
+    const remainingInstallments = emi.totalInstallments - emi.paidInstallments;
+    return sum + (remainingInstallments * emi.amount);
+  }, 0);
+  
+  const totalLiabilities = currentODBalance + totalEMILiability;
   const isPositive = netWorth >= 0;
+
+  if (!hydrated) {
+    return (
+      <Card className="border-0 bg-gradient-to-br from-emerald-600/20 via-green-600/10 to-teal-600/20">
+        <CardContent className="p-5">
+          <div className="animate-pulse space-y-3">
+            <div className="h-5 w-24 bg-muted rounded" />
+            <div className="h-10 w-36 bg-muted rounded" />
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="h-16 bg-muted rounded" />
+              <div className="h-16 bg-muted rounded" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-0 bg-gradient-to-br from-emerald-600/20 via-green-600/10 to-teal-600/20">

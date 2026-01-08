@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Check,
   Download,
+  Upload,
 } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,10 +30,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useFinFreeStore } from '@/lib/store';
+import { useFinFreeStore, useHydration, useTotalMonthlyEMI } from '@/lib/store';
 import { formatCurrency, INITIAL_OD_BALANCE } from '@/lib/constants';
 
 export default function SettingsPage() {
+  const hydrated = useHydration();
+  const totalMonthlyEMI = useTotalMonthlyEMI();
   const {
     currentODBalance,
     emergencyFund,
@@ -40,8 +43,8 @@ export default function SettingsPage() {
     weddingFund,
     lifestyleCap,
     targetODPayment,
-    emiRemaining,
-    emiAmount,
+    emis,
+    transactions,
     updateODBalance,
     updateEmergencyFund,
     updateLandFund,
@@ -58,6 +61,22 @@ export default function SettingsPage() {
     lifestyleCap: lifestyleCap.toString(),
   });
   const [showResetDialog, setShowResetDialog] = useState(false);
+
+  // Show loading state while hydrating
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header title="Settings" showScore={false} />
+        <div className="px-4 py-4 max-w-md mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-64 bg-muted rounded-lg" />
+            <div className="h-48 bg-muted rounded-lg" />
+            <div className="h-32 bg-muted rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSave = (field: keyof typeof editValues) => {
     const value = parseFloat(editValues[field]);
@@ -110,6 +129,8 @@ export default function SettingsPage() {
       landFund,
       weddingFund,
       lifestyleCap,
+      emis,
+      transactions,
       exportedAt: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -119,7 +140,9 @@ export default function SettingsPage() {
     a.download = `finfree-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Data exported successfully');
+    toast.success('Data exported successfully', {
+      description: `${transactions.length} transactions and ${emis.length} EMIs exported`,
+    });
   };
 
   return (
@@ -316,12 +339,12 @@ export default function SettingsPage() {
                 <span className="font-semibold">{formatCurrency(targetODPayment)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">EMI Amount</span>
-                <span className="font-semibold">{formatCurrency(emiAmount)}</span>
+                <span className="text-sm text-muted-foreground">Active EMIs</span>
+                <span className="font-semibold">{emis.filter(e => e.paidInstallments < e.totalInstallments).length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">EMI Months Remaining</span>
-                <span className="font-semibold">{emiRemaining}</span>
+                <span className="text-sm text-muted-foreground">Total Monthly EMI</span>
+                <span className="font-semibold">{formatCurrency(totalMonthlyEMI)}</span>
               </div>
             </div>
           </CardContent>
@@ -370,7 +393,8 @@ export default function SettingsPage() {
                     <li>Emergency Fund → ₹0</li>
                     <li>Land Fund → ₹0</li>
                     <li>Wedding Fund → ₹0</li>
-                    <li>All transactions will be deleted</li>
+                    <li>All {transactions.length} transactions will be deleted</li>
+                    <li>All {emis.length} EMIs will be reset to defaults</li>
                   </ul>
                 </div>
                 <DialogFooter>
